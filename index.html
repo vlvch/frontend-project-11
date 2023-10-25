@@ -5,8 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Webpack Package</title>
   </head>
-  <div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="rss" aria-label="rss" aria-describedby="button-addon2">
-    <button class="btn btn-outline-secondary" type="button" id="button-addon2">Button</button>
+  <form class="row g-3">
+    <div class="col-auto" id="div-input">
+      <label for="add-rss" class="visually-hidden">add rss</label>
+      <input type="rss" class="form-control" id="add-rss" placeholder="rss">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary mb-3">Добавить</button>
+    </div>
+  </form>
+  <div class="container text-center">
+    <ul class="list-group">
+    </ul>
   </div>
+  <script src="/bundle.js"></script>
 </html>

@@ -1,5 +1,10 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import autoprefixer from 'autoprefixer';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default {
   mode: process.env.NODE_ENV || 'development',
@@ -55,9 +60,20 @@ export default {
     }),
   ],
   output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
   devServer: {
-    open: true
-  },
+    static: path.resolve(__dirname, 'dist'), // Путь к вашей папке dist
+    compress: true,
+    port: 8080,
+    devMiddleware: {
+        publicPath: '/' // Установите корневой путь для вашего приложения
+    },
+    client: {
+        overlay: true // Отображать ошибки компиляции в браузере
+    },
+    open: true,
+  }
 };
