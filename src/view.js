@@ -1,16 +1,21 @@
+import i18next from "i18next";
+import resources from './locales/index.js';
 import onChange from "on-change";
 
 function clearErrors() {
-  const errors = document.getElementById('errors');
-  if (errors) {
-    errors.remove();
-  }
-  const input = document.querySelector('input');
-  input.classList.remove('is-invalid');
+    const errors = document.getElementById('error');
+    if (errors) {
+        const parent = errors.parentNode;
+        parent.removeChild(errors);
+    }
+    const input = document.querySelector('input');
+    input.classList.remove('is-invalid');
 }
 
 function render(allRss) {
+
     clearErrors();
+
     const listGroup = document.querySelector('.list-group');
     listGroup.innerHTML = '';
 
@@ -20,7 +25,7 @@ function render(allRss) {
         li.textContent = rss;
         listGroup.appendChild(li);
     })
-}
+}   
 
 function renderError(error) {
     clearErrors();
@@ -30,9 +35,9 @@ function renderError(error) {
 
     const divInput = document.getElementById('div-input');
     const div = document.createElement('div');
-    div.id = 'errors'
+    div.id = 'error'
     div.classList = 'invalid-feedback';
-    div.textContent = `${error}`;
+    div.textContent = i18next.t(`${error}`);
     divInput.appendChild(div);
 }
 
@@ -45,7 +50,7 @@ export default class View {
         }
     }
     renewState(newState) {
-        this.state = { ...this.state, ...newState};
+        this.state = { ...this.state, ...newState };
         this.onChange();
     }
     onChange = () => {
@@ -54,5 +59,12 @@ export default class View {
         } else if (this.state.valid === false) {
             renderError(this.state.error);
         }
+    }
+    init() {
+        i18next.init({
+            lng: 'ru',
+            debug: false,
+            resources,
+        });
     }
 }

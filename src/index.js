@@ -9,11 +9,19 @@ class Controller {
     }
 
     validate(value) {
-        const schema = yup.string()
-            .url('Неправильный адрес')
-            .required('Поле обязательно для заполнения')
-            .notOneOf(this.model.getRss(), 'Rss уже был добавлен');
+        yup.setLocale({
+            string: {
+              url: 'error.address',
+              required: 'error.empty',
+              notOneOf: 'error.oneOf',
+            },
+        });
 
+        const schema = yup.string()
+            .url()
+            .required()
+            .notOneOf(this.model.getRss());
+        
         schema.validate(value)
             .then(() => {
                 this.model.addRss(value);
@@ -21,7 +29,8 @@ class Controller {
                 this.view.renewState(newState);
             })
             .catch((error) => {
-                const newState = { valid: false, error: error };
+                const errorMessage = error.message;
+                const newState = { valid: false, error: errorMessage };
                 this.view.renewState(newState);
             });
     }
@@ -56,3 +65,4 @@ const model = new Model();
 const view = new View();
 const controller = new Controller(model, view);
 controller.init();
+view.init();
