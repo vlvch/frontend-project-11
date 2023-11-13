@@ -1,22 +1,30 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Webpack Package</title>
-  </head>
-  <form class="row g-3" id="form">
-    <div class="col-auto" id="div-input">
-      <label for="add-rss" class="visually-hidden">add rss</label>
-      <input type="rss" autofocus class="form-control" id="add-rss" placeholder="rss">
-    </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary mb-3">Добавить</button>
-    </div>
-  </form>
-  <div class="container text-center">
-    <ul class="list-group">
-    </ul>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webpack Package</title>
+</head>
+<form class="row g-3" id="form">
+  <div class="col-auto" id="div-input">
+    <label for="add-rss" class="visually-hidden">add rss</label>
+    <input type="rss" autofocus class="form-control" id="add-rss" placeholder="rss">
   </div>
-  <script src="/bundle.js"></script>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary mb-3">Добавить</button>
+  </div>
+</form>
+<div class="container text-center">
+  <div class="row">
+    <div class="col-sm-8">
+      <p>Посты</p>
+      <ul class="list-group" id="posts"></ul>
+    </div>
+    <div class="col-sm-4">
+      <p>Фиды</p>
+      <ul class="list-group" id="feeds"></ul>
+    </div>
+  </div>
+</div>
 </html>

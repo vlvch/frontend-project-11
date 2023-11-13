@@ -10,6 +10,7 @@ export default {
       },
       button : {
         add: 'Добавить',
+        read: 'Просмотр',
       }    
       // END
     },
