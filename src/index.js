@@ -33,7 +33,7 @@ class Controller {
         this.model = model;
         this.view = view;
 
-        this.form = document.querySelector('form');
+        this.form = document.getElementById('form');
 
         this.form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -112,12 +112,10 @@ class Model {
     }
     getFeeds() {
         const result = getUnique(this.allFeeds);
-        console.log(result);
         return result;
     }
     getPosts() {
         const result = getUnique(this.allPosts);
-        console.log(result);
         return result;
     }
     downloadRss() {

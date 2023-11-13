@@ -1,3 +1,5 @@
+import { uid } from 'uid';
+
 export default function(rss) {
     const result = {
         feed: [],
@@ -18,7 +20,7 @@ export default function(rss) {
         const description = item.querySelector('description').textContent;
         const link = item.querySelector('link').textContent;
 
-        result.posts.push({ title: title, description: description, link: link });
+        result.posts.push({ title: title, description: description, link: link, id: uid() });
     })
     return result;
 }
