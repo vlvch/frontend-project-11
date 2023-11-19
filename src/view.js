@@ -3,18 +3,17 @@ import resources from './locales/index.js';
 
 const viewedPosts = [];
 
-function clearErrors() {
-    const errors = document.getElementById('error');
-    if (errors) {
-        const parent = errors.parentNode;
-        parent.removeChild(errors);
+function clearMessage() {
+    const message = document.getElementById('message');
+    if (message) {
+        const parent = message.parentNode;
+        parent.removeChild(message);
     }
     const input = document.querySelector('input');
-    input.classList.remove('is-invalid');
+    input.classList = 'form-control';
 }
 
 function renderModal(node) {
-    console.log(node);
     const modal = document.getElementById('modal');
     const description = node.querySelector('#postDescription');
     const title = node.querySelector('#postTitle');
@@ -85,16 +84,15 @@ function renderFeeds(feeds) {
 
 function renderPosts(posts) {
     const postsDiv = document.getElementById('posts');
-    postsDiv.innerHTML = '';
 
-    const ul = document.createElement('ul');
-    ul.classList = 'list-group';
+    const ul = postsDiv.querySelector('ul');
+    ul.innerHTML = ''
 
-    const p = document.createElement('p');
+    const p = postsDiv.querySelector('p');
     p.textContent = i18next.t('ul.posts');
 
     posts.map((post) => {
-        const { title, description, link, id} = post;
+        const { title, description, link, id } = post;
 
         const a = document.createElement('a');
         a.id = 'postTitle';
@@ -126,8 +124,6 @@ function renderPosts(posts) {
         })
         ul.insertBefore(li, lastLi);
     })
-    postsDiv.appendChild(p);
-    postsDiv.appendChild(ul);
 }
 
 function renderError(error) {
@@ -136,16 +132,28 @@ function renderError(error) {
 
     const divInput = document.getElementById('div-input');
     const div = document.createElement('div');
-    div.id = 'error'
+    div.id = 'message'
     div.classList = 'invalid-feedback';
     div.textContent = i18next.t(error);
+    divInput.appendChild(div);
+}
+
+function renderSuccess() {
+    const input = document.querySelector('input');
+    input.classList.add('is-valid');
+
+    const divInput = document.getElementById('div-input');
+    const div = document.createElement('div');
+    div.id = 'message'
+    div.classList = 'valid-feedback';
+    div.textContent = i18next.t('valid');
     divInput.appendChild(div);
 }
 
 export default class View {
     constructor() {
         this.state = {
-            valid: true,
+            valid: '',
             error: '',
             feeds: '',
             posts: '',
@@ -155,9 +163,9 @@ export default class View {
             debug: false,
             resources,
         });
-        this.posts = document.getElementById('posts');
+        this.posts = document.querySelector('#posts > ul');
         this.posts.addEventListener('click', (e) => {
-            e.target.tagName === 'BUTTON'? renderModal(e.target.parentNode) : renderModal(e.target);
+            e.target.tagName === 'BUTTON' ? renderModal(e.target.parentNode) : renderModal(e.target);
         });
     }
     renewState(newState) {
@@ -168,10 +176,14 @@ export default class View {
         if (this.state.valid === true) {
             renderFeeds(this.state.feeds);
             renderPosts(this.state.posts);
-            clearErrors();
+            clearMessage();
+            renderSuccess();
         } else if (this.state.valid === false) {
-            clearErrors()
+            clearMessage();
             renderError(this.state.error);
+            renderPosts(this.state.posts);
+        } else {
+            renderPosts(this.state.posts);
         }
     }
 }
