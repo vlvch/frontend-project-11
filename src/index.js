@@ -45,7 +45,7 @@ class Controller {
         this.form.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const input = document.getElementById('add-rss');
+            const input = document.getElementById('url-input');
             const value = input.value;
 
             this.validate(value)
