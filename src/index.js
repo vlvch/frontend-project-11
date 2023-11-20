@@ -3,6 +3,7 @@ import * as yup from 'yup';
 import View from './view.js';
 import parser from './parser.js';
 import { differenceInMilliseconds } from 'date-fns';
+import axios from 'axios';
 
 function sortByDate(data) {
     const result = data.sort((a, b) => {
@@ -116,6 +117,16 @@ class Controller {
         this.view.renewState(newState);
         this.refreshPosts();
     }
+
+    checkNet(value) {
+        return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`)
+        .then()
+        .catch((error) => {
+            if (error.message === 'Network Error'){
+                throw new Error('error.net');
+            } 
+        })
+    }
 }
 
 class Model {
@@ -143,11 +154,8 @@ class Model {
         return sortedPosts;
     }
     downloadRss(link) {
-        return fetch(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`)
-            .then((response) => {
-                if (response.ok) return response.json();
-                throw new Error('error.net');
-            })
+        return axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`)
+            .then((response) => response.data)
             .then((data) => parser(data.contents))
             .then((data) => {
                 const { feed, posts, channel } = data;
@@ -158,6 +166,9 @@ class Model {
                 this.allPosts.push(posts);
             })
             .catch((error) => {
+                if (error.message === 'Network Error'){
+                    throw new Error('error.net');
+                }
                 throw error
             });
     }

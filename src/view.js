@@ -181,7 +181,7 @@ export default class View {
         } else if (this.state.valid === false) {
             clearMessage();
             renderError(this.state.error);
-            renderPosts(this.state.posts);
+            return this.state.posts.length > 0? renderPosts(this.state.posts) : '';
         } else {
             renderPosts(this.state.posts);
         }
