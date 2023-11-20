@@ -30,10 +30,9 @@ function renderModal(node) {
     modal.style = 'display: block;';
 
     const viewedPost = document.getElementById(node.id);
-    viewedPost.classList.remove('fw-bold');
-    viewedPost.classList.add('fw-normal');
-
-    viewedPosts.push(title.textContent);
+    const viewedPostText = viewedPost.querySelector('#postTitle');
+    viewedPostText.classList = 'fw-normal';
+    viewedPosts.push(viewedPostText.textContent);
 
     modal.addEventListener('click', () => closeModal());
 }
@@ -98,6 +97,7 @@ function renderPosts(posts) {
         a.id = 'postTitle';
         a.href = link;
         a.textContent = title;
+        a.classList = 'fw-bold';
 
         const hidden = document.createElement('a');
         hidden.id = 'postDescription';
@@ -110,8 +110,7 @@ function renderPosts(posts) {
 
         const li = document.createElement('li');
         li.id = id;
-        li.classList = 'list-group-item d-flex justify-content-between align-items-center fw-bold';
-        li.appendChild(a);
+        li.classList = 'list-group-item d-flex justify-content-between align-items-center';
         li.appendChild(hidden);
         li.appendChild(button);
 
@@ -119,9 +118,11 @@ function renderPosts(posts) {
 
         viewedPosts.map((post) => {
             if (post === title) {
-                li.classList = 'list-group-item d-flex justify-content-between align-items-center fw-normal';
+                a.classList = 'fw-normal';
             }
         })
+        li.appendChild(a);
+        li.appendChild(button);
         ul.insertBefore(li, lastLi);
     })
 }
