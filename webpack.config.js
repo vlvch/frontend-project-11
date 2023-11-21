@@ -1,7 +1,6 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import autoprefixer from 'autoprefixer';
-import path from 'path';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -24,25 +23,25 @@ export default {
         test: /\.(scss)$/,
         use: [
           {
-            loader: 'style-loader'
+            loader: 'style-loader',
           },
           {
-            loader: 'css-loader'
+            loader: 'css-loader',
           },
           {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
                 plugins: [
-                  autoprefixer
-                ]
-              }
-            }
+                  autoprefixer,
+                ],
+              },
+            },
           },
           {
-            loader: 'sass-loader'
-          }
-        ]
+            loader: 'sass-loader',
+          },
+        ],
       },
       {
         test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
@@ -69,11 +68,11 @@ export default {
     compress: true,
     port: 8080,
     devMiddleware: {
-        publicPath: '/' // Установите корневой путь для вашего приложения
+      publicPath: '/', // Установите корневой путь для вашего приложения
     },
     client: {
-        overlay: true // Отображать ошибки компиляции в браузере
+      overlay: true, // Отображать ошибки компиляции в браузере
     },
     open: true,
-  }
+  },
 };

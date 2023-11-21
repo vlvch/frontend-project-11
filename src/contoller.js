@@ -1,95 +1,92 @@
 import * as yup from 'yup';
 
 function createController(createdModel, createdView) {
-    const {
-        addLink,
-        removeLink,
-        getLinks,
-        getFeeds,
-        getPosts,
-        downloadRss,
-    } = createdModel;
-    const {
-        renewState,
-        addDescription,
-        getDescription,
-    } = createdView;
+  const {
+    addLink,
+    getLinks,
+    getFeeds,
+    getPosts,
+    downloadRss,
+  } = createdModel;
 
-    const form = document.getElementById('form');
+  const {
+    renewState,
+  } = createdView;
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+  function validate(value) {
+    yup.setLocale({
+      string: {
+        url: 'error.address',
+      },
+      mixed: {
+        required: 'error.empty',
+        notOneOf: 'error.oneOf',
+      },
+    });
 
-        const input = document.getElementById('url-input');
-        const value = input.value;
+    const schema = yup.string()
+      .url()
+      .required()
+      .notOneOf(getLinks());
 
-        validate(value)
-            .then(() => downloadRss(value))
-            .then(() => {
-                sendSuccess(value);
-                form.reset();
-            })
-            .catch((error) => sendError(error));
-    })
+    return schema.validate(value)
+      .then()
+      .catch((error) => {
+        throw error;
+      });
+  }
 
-    function refreshPosts() {
-        return new Promise(() => {
-            getLinks().map((link) => {
-                downloadRss(link)
-                    .then(() => {
-                        const feeds = getFeeds();
-                        const posts = getPosts();
+  function refreshPosts() {
+    return new Promise(() => {
+      getLinks().forEach((link) => {
+        downloadRss(link)
+          .then(() => {
+            const feeds = getFeeds();
+            const posts = getPosts();
 
-                        const newState = { feeds: feeds, posts: posts };
-                        renewState(newState);
-                        setTimeout(() => refreshPosts(), 5000);
-                    })
-                    .catch((error) => {
-                        throw error;
-                    })
-            })
-        })
-    }
+            const newState = { feeds, posts };
+            renewState(newState);
+            setTimeout(() => refreshPosts(), 5000);
+          })
+          .catch((error) => {
+            throw error;
+          });
+      });
+    });
+  }
 
-    function validate(value) {
-        yup.setLocale({
-            string: {
-                url: 'error.address',
-            },
-            mixed: {
-                required: 'error.empty',
-                notOneOf: 'error.oneOf',
-            }
-        });
+  function sendError(error) {
+    const errorMessage = error.message;
+    const newState = { valid: false, error: errorMessage };
+    renewState(newState);
+  }
 
-        const schema = yup.string()
-            .url()
-            .required()
-            .notOneOf(getLinks())
+  function sendSuccess(value) {
+    addLink(value);
+    const feeds = getFeeds();
+    const posts = getPosts();
 
-        return schema.validate(value)
-            .then()
-            .catch((error) => {
-                throw error;
-            })
-    }
+    const newState = { valid: true, feeds, posts };
+    renewState(newState);
+    refreshPosts();
+  }
 
+  const form = document.getElementById('form');
 
-    function sendError(error) {
-        const errorMessage = error.message;
-        const newState = { valid: false, error: errorMessage };
-        renewState(newState);
-    }
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-    function sendSuccess(value) {
-        addLink(value);
-        const feeds = getFeeds();
-        const posts = getPosts();
+    const input = document.getElementById('url-input');
+    const { value } = input;
 
-        const newState = { valid: true, feeds: feeds, posts: posts }
-        renewState(newState);
-        refreshPosts();
-    }
+    validate(value)
+      .then(() => downloadRss(value))
+      .then(() => {
+        sendSuccess(value);
+        form.reset();
+      })
+      .catch((error) => sendError(error));
+  });
 }
 
 export default createController;
