@@ -3,7 +3,7 @@ import autoprefixer from 'autoprefixer';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const dirName = dirname(fileURLToPath(import.meta.url));
 
 export default {
   mode: process.env.NODE_ENV || 'development',
@@ -60,11 +60,11 @@ export default {
   ],
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(dirName, 'dist'),
     clean: true,
   },
   devServer: {
-    static: path.resolve(__dirname, 'dist'), // Путь к вашей папке dist
+    static: path.resolve(dirName, 'dist'), // Путь к вашей папке dist
     compress: true,
     port: 8080,
     devMiddleware: {

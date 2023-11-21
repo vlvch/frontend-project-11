@@ -181,9 +181,7 @@ function createView() {
 
   const posts = document.querySelector('#posts > ul');
 
-  posts.addEventListener('click', (e) => {
-    return e.target.tagName === 'BUTTON' ? renderModal(e.target.parentNode) : renderModal(e.target);
-  });
+  posts.addEventListener('click', (e) => (e.target.tagName === 'BUTTON' ? renderModal(e.target.parentNode) : renderModal(e.target)));
 
   function onChange() {
     if (state.valid === true) {
