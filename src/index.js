@@ -55,15 +55,18 @@ let state = {
 };
 
 const change = () => {
-  clearMessage();
-  resetButton();
   if (state.valid === true) {
+    clearMessage();
+    resetButton();
     renderFeeds(state.feeds);
     renderPosts(state.posts);
     renderSuccess();
+  } else if (state.valid === false) {
+    clearMessage();
+    resetButton();
+    renderError(state.error);
+    return state.posts.length > 0 ? renderPosts(state.posts) : '';
   }
-  renderError(state.error);
-  return state.posts.length > 0 ? renderPosts(state.posts) : '';
 };
 
 const addLink = (link) => {
@@ -144,11 +147,12 @@ const controller = (value) => {
   validate(value)
     .then(() => downloadRss(value))
     .then(() => {
-      renewState({ valid: true });
+      let newState = { valid: true };
       if (!getRefresh()) {
-        renewState({ refresh: true });
+        newState.refresh = true;
         refreshPosts();
       }
+      renewState(newState);
     })
     .catch((error) => {
       renewState({ valid: false, error: error.message });
