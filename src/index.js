@@ -60,13 +60,12 @@ const change = () => {
     resetButton();
     renderFeeds(state.feeds);
     renderPosts(state.posts);
-    renderSuccess();
-  } else if (state.valid === false) {
-    clearMessage();
-    resetButton();
-    renderError(state.error);
-    return state.posts.length > 0 ? renderPosts(state.posts) : '';
+    return renderSuccess();
   }
+  clearMessage();
+  resetButton();
+  renderError(state.error);
+  return state.posts.length > 0 ? renderPosts(state.posts) : '';
 };
 
 const addLink = (link) => {
@@ -147,7 +146,7 @@ const controller = (value) => {
   validate(value)
     .then(() => downloadRss(value))
     .then(() => {
-      let newState = { valid: true };
+      const newState = { valid: true };
       if (!getRefresh()) {
         newState.refresh = true;
         refreshPosts();
