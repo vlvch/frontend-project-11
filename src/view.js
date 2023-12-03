@@ -1,5 +1,6 @@
 import i18next from 'i18next';
 import resources from './locales/index.js';
+import controller from './index.js';
 
 i18next.init({
   lng: 'ru',
@@ -7,18 +8,11 @@ i18next.init({
   resources,
 });
 
-function createView() {
-  let state = {
-    valid: '',
-    error: '',
-    feeds: '',
-    posts: '',
-    descriptions: [],
-  };
-
+const view = () => {
+  const allPosts = [];
   const viewedPosts = [];
 
-  function clearMessage() {
+  const clearMessage = () => {
     const message = document.getElementById('message');
     if (message) {
       const parent = message.parentNode;
@@ -26,39 +20,14 @@ function createView() {
     }
     const input = document.querySelector('input');
     input.classList = 'form-control';
-  }
+  };
 
-  function getDescription(id) {
-    let result;
-    state.descriptions.forEach((description) => {
-      if (id === description.id) {
-        result = description.text;
-      }
-    });
-    return result;
-  }
-
-  function closeModal() {
+  const renderModal = (node) => {
+    const { title, description, id } = node;
     const modal = document.getElementById('modal');
 
-    modal.classList.remove('show');
-    modal.style = 'display: none;';
-
     const modalTitle = modal.querySelector('.modal-title');
-    modalTitle.textContent = '';
-
-    const modalBody = modal.querySelector('.modal-body');
-    modalBody.innerHTML = '';
-  }
-
-  function renderModal(node) {
-    const modal = document.getElementById('modal');
-    const description = getDescription(node.id);
-
-    const title = node.querySelector('#postTitle');
-
-    const modalTitle = modal.querySelector('.modal-title');
-    modalTitle.textContent = title.textContent;
+    modalTitle.textContent = title;
 
     const modalBody = modal.querySelector('.modal-body');
     const a = document.createElement('a');
@@ -68,15 +37,25 @@ function createView() {
     modal.classList.add('show');
     modal.style = 'display: block;';
 
-    const viewedPost = document.getElementById(node.id);
-    const viewedPostText = viewedPost.querySelector('#postTitle');
-    viewedPostText.classList = 'fw-normal';
-    viewedPosts.push(viewedPostText.textContent);
+    const post = document.getElementById(id);
+    const postText = post.querySelector('#postTitle');
+    postText.classList = 'fw-normal link-secondary';
+    viewedPosts.push(postText.textContent);
 
-    modal.addEventListener('click', () => closeModal());
-  }
+    const postButton = post.querySelector('button');
+    postButton.classList = 'btn btn-outline-secondary';
 
-  function renderFeeds(feeds) {
+    modal.addEventListener('click', () => {
+      modal.classList.remove('show');
+      modal.style = 'display: none;';
+
+      modalTitle.textContent = '';
+
+      modalBody.innerHTML = '';
+    });
+  };
+
+  const renderFeeds = (feeds) => {
     const feedsDiv = document.getElementById('feeds');
     feedsDiv.innerHTML = '';
 
@@ -105,13 +84,9 @@ function createView() {
 
     feedsDiv.appendChild(feedHeader);
     feedsDiv.appendChild(ul);
-  }
+  };
 
-  function addDescription(text, id) {
-    state.descriptions.push({ text, id });
-  }
-
-  function renderPosts(posts) {
+  const renderPosts = (posts) => {
     const postsDiv = document.getElementById('posts');
 
     const ul = postsDiv.querySelector('ul');
@@ -122,10 +97,10 @@ function createView() {
 
     posts.forEach((post) => {
       const {
-        title, description, link, id,
+        title, link, id,
       } = post;
 
-      addDescription(description, id);
+      allPosts.push(post);
 
       const a = document.createElement('a');
       a.id = 'postTitle';
@@ -134,7 +109,7 @@ function createView() {
       a.classList = 'fw-bold';
 
       const button = document.createElement('button');
-      button.classList = 'btn btn-outline-secondary';
+      button.classList = 'btn btn-outline-primary';
       button.textContent = i18next.t('button.read');
 
       const li = document.createElement('li');
@@ -144,30 +119,42 @@ function createView() {
 
       const lastLi = ul.firstChild;
 
-      viewedPosts.forEach((viewedPost) => {
-        if (viewedPost === title) {
-          a.classList = 'fw-normal';
-        }
-      });
+      if (viewedPosts.find((viewedPost) => viewedPost === title)) {
+        a.classList = 'fw-normal link-secondary';
+        button.classList = 'btn btn-outline-secondary';
+      }
+
       li.appendChild(a);
       li.appendChild(button);
+
       ul.insertBefore(li, lastLi);
     });
-  }
+  };
 
-  function renderError(error) {
+  const renderError = (error) => {
     const input = document.querySelector('input');
     input.classList.add('is-invalid');
 
     const divInput = document.getElementById('div-input');
     const div = document.createElement('div');
+
     div.id = 'message';
     div.classList = 'invalid-feedback';
     div.textContent = i18next.t(error);
-    divInput.appendChild(div);
-  }
 
-  function renderSuccess() {
+    divInput.appendChild(div);
+  };
+
+  const getPostById = (id) => allPosts.find((el) => el.id === id);
+
+  const form = document.getElementById('form');
+
+  const resetButton = () => {
+    const button = form.querySelector('button');
+    button.classList = 'btn btn-primary mb-3';
+  };
+
+  const renderSuccess = () => {
     const input = document.querySelector('input');
     input.classList.add('is-valid');
 
@@ -177,32 +164,44 @@ function createView() {
     div.classList = 'valid-feedback';
     div.textContent = i18next.t('valid');
     divInput.appendChild(div);
-  }
-
-  const posts = document.querySelector('#posts > ul');
-
-  posts.addEventListener('click', (e) => (e.target.tagName === 'BUTTON' ? renderModal(e.target.parentNode) : renderModal(e.target)));
-
-  function onChange() {
-    if (state.valid === true) {
-      renderFeeds(state.feeds);
-      renderPosts(state.posts);
-      clearMessage();
-      renderSuccess();
-    } else if (state.valid === false) {
-      clearMessage();
-      renderError(state.error);
-      return posts.length > 0 ? renderPosts(state.posts) : '';
-    }
-    return renderPosts(state.posts);
-  }
-
-  function renewState(newState) {
-    state = { ...state, ...newState };
-    onChange();
-  }
-  return {
-    renewState,
+    form.reset();
   };
-}
-export default createView;
+
+  const postsList = document.querySelector('#posts > ul');
+
+  postsList.addEventListener('click', (e) => {
+    let value;
+
+    switch (e.target.tagName) {
+      case 'BUTTON':
+        value = e.target.parentNode;
+        break;
+      default:
+        value = e.target;
+    }
+    const postId = value.id;
+    const currentPost = getPostById(postId);
+
+    renderModal(currentPost);
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const button = form.querySelector('button');
+    button.classList = 'btn btn-secondary disabled mb-3';
+
+    const input = document.getElementById('url-input');
+    const { value } = input;
+    controller(value);
+  });
+  return {
+    clearMessage,
+    renderFeeds,
+    renderPosts,
+    renderError,
+    renderSuccess,
+    resetButton,
+  };
+};
+export default view;

@@ -64,15 +64,16 @@ export default {
     clean: true,
   },
   devServer: {
-    static: path.resolve(dirName, 'dist'), // Путь к вашей папке dist
+    static: path.resolve(dirName, 'dist'),
     compress: true,
     port: 8080,
     devMiddleware: {
-      publicPath: '/', // Установите корневой путь для вашего приложения
+      publicPath: '/',
     },
     client: {
-      overlay: true, // Отображать ошибки компиляции в браузере
+      overlay: true,
     },
     open: true,
   },
+  performance: { hints: false },
 };
