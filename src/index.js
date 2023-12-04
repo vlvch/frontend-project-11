@@ -5,6 +5,16 @@ import { differenceInMilliseconds } from 'date-fns';
 import parser from './parser.js';
 import view from './view.js';
 
+yup.setLocale({
+  string: {
+    url: 'error.address',
+  },
+  mixed: {
+    required: 'error.empty',
+    notOneOf: 'error.oneOf',
+  },
+});
+
 const {
   clearMessage,
   renderFeeds,
@@ -126,16 +136,6 @@ const refreshPosts = () => {
 
 const controller = (value) => {
   const validate = (string) => {
-    yup.setLocale({
-      string: {
-        url: 'error.address',
-      },
-      mixed: {
-        required: 'error.empty',
-        notOneOf: 'error.oneOf',
-      },
-    });
-
     const schema = yup.string()
       .url()
       .required()

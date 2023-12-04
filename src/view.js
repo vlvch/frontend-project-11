@@ -183,6 +183,7 @@ const view = () => {
 
     renderModal(currentPost);
   });
+
   const formWatcher = (controller) => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -195,6 +196,7 @@ const view = () => {
       controller(value);
     });
   };
+
   return {
     clearMessage,
     renderFeeds,
