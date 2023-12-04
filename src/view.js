@@ -1,6 +1,5 @@
 import i18next from 'i18next';
 import resources from './locales/index.js';
-import controller from './index.js';
 
 i18next.init({
   lng: 'ru',
@@ -184,17 +183,18 @@ const view = () => {
 
     renderModal(currentPost);
   });
+  const formWatcher = (controller) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+      const button = form.querySelector('button');
+      button.classList = 'btn btn-secondary disabled mb-3';
 
-    const button = form.querySelector('button');
-    button.classList = 'btn btn-secondary disabled mb-3';
-
-    const input = document.getElementById('url-input');
-    const { value } = input;
-    controller(value);
-  });
+      const input = document.getElementById('url-input');
+      const { value } = input;
+      controller(value);
+    });
+  };
   return {
     clearMessage,
     renderFeeds,
@@ -202,6 +202,7 @@ const view = () => {
     renderError,
     renderSuccess,
     resetButton,
+    formWatcher,
   };
 };
 export default view;

@@ -12,6 +12,7 @@ const {
   renderError,
   renderSuccess,
   resetButton,
+  formWatcher,
 } = view();
 
 const getUnique = (data) => {
@@ -158,4 +159,4 @@ const controller = (value) => {
     });
 };
 
-export default controller;
+formWatcher(controller);
