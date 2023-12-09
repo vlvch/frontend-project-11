@@ -9,7 +9,7 @@ Add RSS feeds and track new posts with updates every 5 seconds.
 ## System requirements
 OS - Windows/macOS/Linux <br/>
 npm ^9.8.0 <br/>
-node ^v20.4.0
+node ^21.2.0
 
 ## Setup 
 ```bash
