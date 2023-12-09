@@ -2,6 +2,9 @@ import './scss/styles.scss';
 import axios from 'axios';
 import * as yup from 'yup';
 import { differenceInMilliseconds } from 'date-fns';
+import _ from 'lodash';
+import { uid } from 'uid';
+import onChange from 'on-change';
 import parser from './parser.js';
 import view from './view.js';
 
@@ -16,125 +19,110 @@ yup.setLocale({
 });
 
 const {
-  clearMessage,
   renderFeeds,
   renderPosts,
   renderError,
   renderSuccess,
-  resetButton,
+  disableButton,
   formWatcher,
 } = view();
-
-const getUnique = (data) => {
-  const unique = {};
-  const filtered = data.flat()
-    .filter((node) => {
-      const title = node.title.toLowerCase();
-      if (!unique[title]) {
-        unique[title] = true;
-        return true;
-      }
-      return false;
-    });
-  return filtered;
-};
 
 const sortByDate = (data) => {
   const result = data.sort((a, b) => {
     const date1 = new Date(a.pubDate);
     const date2 = new Date(b.pubDate);
 
-    const difference = differenceInMilliseconds(date1, date2);
-    if (difference < 0) {
-      return -1;
-    }
-    if (difference > 0) {
-      return 1;
-    }
-    return 0;
+    return differenceInMilliseconds(date1, date2);
   });
   return result;
 };
 
-let state = {
-  links: [],
-  feeds: [],
-  posts: [],
-  valid: '',
-  error: '',
-  refresh: false,
-};
-
-const change = () => {
-  if (state.valid === true) {
-    clearMessage();
-    resetButton();
-    renderFeeds(state.feeds);
-    renderPosts(state.posts);
-    return renderSuccess();
-  }
-  clearMessage();
-  resetButton();
-  renderError(state.error);
-  return state.posts.length > 0 ? renderPosts(state.posts) : '';
-};
-
-const addLink = (link) => {
-  state.links.push(link);
-};
-
-const addPosts = (newPosts) => {
-  state.posts.push(newPosts);
-};
-
-const addFeed = (newFeed) => {
-  state.feeds.push(newFeed);
+const state = {
+  inputForm: {
+    status: 'default',
+    error: '',
+  },
+  displayField: {
+    feeds: [],
+    posts: [],
+  },
 };
 
 const getSortedPosts = () => {
-  const uniqPosts = getUnique(state.posts);
+  const uniqPosts = _.uniqBy(state.displayField.posts.flat(), 'title');
   return sortByDate(uniqPosts);
 };
 
-const getLinks = () => state.links;
+const getLinks = () => state.displayField.feeds.map((node) => node.link);
 
-const getRefresh = () => state.refresh;
-
-const renewState = (newState) => {
-  const sortedPosts = getSortedPosts();
-  state = { ...state, ...newState, posts: sortedPosts };
-
-  change();
+const proxying = (link) => {
+  const url = new URL(link);
+  return axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(url)}`);
 };
 
-const downloadRss = (link) => axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`)
+const downloadRss = (link) => proxying(link)
   .then((response) => response.data)
-  .then((data) => parser(data.contents))
+  .then((data) => parser(data))
   .then((data) => {
     const { feed, posts } = data;
-    if (!state.links.includes(link)) {
-      addLink(link);
-      addFeed(feed);
+
+    const identifiedPosts = posts.map((node) => ({ ...node, id: uid() }));
+
+    if (_.findIndex(state.displayField.feeds, { link }) < 0) {
+      state.displayField.feeds.push(feed);
     }
-    addPosts(posts);
+    state.displayField.posts.push(identifiedPosts);
   })
   .catch((error) => {
-    if (error.message === 'Network Error') {
-      throw new Error('error.net');
-    }
     throw error;
   });
 
-const refreshPosts = () => {
-  const promises = state.links.map((link) => downloadRss(link));
+const watchedState = onChange(state, (path, value) => {
+  if (path === 'inputForm.status') {
+    switch (value) {
+      case 'processing':
+        disableButton();
+        break;
+      case 'processed':
+        renderFeeds(state.displayField.feeds);
+        renderPosts(state.displayField.posts);
+        renderSuccess();
+        break;
+      case 'failed':
+        renderError(state.inputForm.error);
+        if (state.displayField.posts.length > 0) {
+          renderPosts(state.displayField.posts);
+        }
+        break;
+      case 'refresh':
+        renderPosts(state.displayField.posts);
+        break;
+      default:
+        throw new Error('status fail');
+    }
+  }
+});
+
+const updatePosts = () => {
+  const updateDelay = 5000;
+  const promises = getLinks().map((link) => downloadRss(link));
   Promise.all(promises)
-    .then(() => renewState(state))
+    .then(() => {
+      const sortedPosts = getSortedPosts();
+      state.displayField.posts = sortedPosts;
+
+      state.inputForm.status = 'default';
+      watchedState.inputForm.status = 'refresh';
+    })
+    .catch((error) => {
+      throw error;
+    })
     .finally(() => {
-      setTimeout(() => refreshPosts(), 5000);
+      setTimeout(() => updatePosts(), updateDelay);
     });
 };
 
-const controller = (value) => {
+const makeControl = (value) => {
   const validate = (string) => {
     const schema = yup.string()
       .url()
@@ -145,18 +133,40 @@ const controller = (value) => {
   };
 
   validate(value)
+    .then(() => {
+      watchedState.inputForm.status = 'processing';
+    })
     .then(() => downloadRss(value))
     .then(() => {
-      const newState = { valid: true };
-      if (!getRefresh()) {
-        newState.refresh = true;
-        refreshPosts();
+      const sortedPosts = getSortedPosts();
+      state.displayField.posts = sortedPosts;
+
+      watchedState.inputForm.status = 'processed';
+    })
+    .then(() => {
+      if (getLinks().length === 1) {
+        updatePosts();
       }
-      renewState(newState);
     })
     .catch((error) => {
-      renewState({ valid: false, error: error.message });
+      let errorMessage;
+
+      switch (error.message) {
+        case 'Network Error':
+          errorMessage = 'error.net';
+          break;
+        case 'Link has no channel':
+          errorMessage = 'error.notRss';
+          break;
+        default:
+          errorMessage = error.message;
+          break;
+      }
+      state.inputForm.error = errorMessage;
+
+      state.inputForm.status = 'default';
+      watchedState.inputForm.status = 'failed';
     });
 };
 
-formWatcher(controller);
+formWatcher(makeControl);

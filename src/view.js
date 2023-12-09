@@ -130,7 +130,15 @@ const view = () => {
     });
   };
 
+  const form = document.getElementById('form');
+
+  const resetButton = () => {
+    const button = form.querySelector('button');
+    button.classList = 'btn btn-primary mb-3';
+  };
+
   const renderError = (error) => {
+    clearMessage();
     const input = document.querySelector('input');
     input.classList.add('is-invalid');
 
@@ -142,18 +150,13 @@ const view = () => {
     div.textContent = i18next.t(error);
 
     divInput.appendChild(div);
+    resetButton();
   };
 
   const getPostById = (id) => allPosts.find((el) => el.id === id);
 
-  const form = document.getElementById('form');
-
-  const resetButton = () => {
-    const button = form.querySelector('button');
-    button.classList = 'btn btn-primary mb-3';
-  };
-
   const renderSuccess = () => {
+    clearMessage();
     const input = document.querySelector('input');
     input.classList.add('is-valid');
 
@@ -164,6 +167,7 @@ const view = () => {
     div.textContent = i18next.t('valid');
     divInput.appendChild(div);
     form.reset();
+    resetButton();
   };
 
   const postsList = document.querySelector('#posts > ul');
@@ -188,13 +192,15 @@ const view = () => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const button = form.querySelector('button');
-      button.classList = 'btn btn-secondary disabled mb-3';
-
       const input = document.getElementById('url-input');
       const { value } = input;
       controller(value);
     });
+  };
+
+  const disableButton = () => {
+    const button = form.querySelector('button');
+    button.classList = 'btn btn-secondary disabled mb-3';
   };
 
   return {
@@ -204,6 +210,7 @@ const view = () => {
     renderError,
     renderSuccess,
     resetButton,
+    disableButton,
     formWatcher,
   };
 };

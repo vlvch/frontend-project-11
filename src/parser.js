@@ -1,22 +1,23 @@
-import { uid } from 'uid';
-
 const rssParser = (rss) => {
+  const { contents, status } = rss;
   const result = {
     feed: '',
     posts: [],
   };
+
   const parser = new DOMParser();
-  const xml = parser.parseFromString(rss, 'text/xml');
+
+  const xml = parser.parseFromString(contents, 'text/xml');
 
   const channel = xml.querySelector('channel');
-  if (!channel) {
-    throw new Error('error.notRss');
-  }
 
+  if (!channel) {
+    throw new Error('Link has no channel');
+  }
   const channelTitle = xml.querySelector('channel > title') ? xml.querySelector('channel > title').textContent : '';
   const channelDescription = xml.querySelector('channel > description') ? xml.querySelector('channel > description').textContent : '';
 
-  result.feed = { title: channelTitle, description: channelDescription };
+  result.feed = { title: channelTitle, description: channelDescription, link: status.url };
 
   const items = xml.querySelectorAll('item');
 
@@ -27,7 +28,7 @@ const rssParser = (rss) => {
     const pubDate = item.querySelector('pubDate').textContent;
 
     result.posts.push({
-      title, description, link, pubDate, id: uid(),
+      title, description, link, pubDate,
     });
   });
   return result;
