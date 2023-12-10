@@ -55,9 +55,7 @@ const getSortedPosts = () => {
 
 const getLinks = () => state.displayField.feeds.map((node) => node.link);
 
-const proxying = (link) => {
-  return axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
-};
+const proxying = (link) => axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
 
 const downloadRss = (link) => proxying(link)
   .then((response) => response.data)
