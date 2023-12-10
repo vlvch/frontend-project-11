@@ -48,7 +48,6 @@ const getLinks = () => state.displayField.feeds.map((node) => node.link);
 const proxying = (link) => {
   const newUrl = new URL(link);
   return axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${newUrl}`);
-
 };
 
 const downloadRss = (link) => proxying(link)
