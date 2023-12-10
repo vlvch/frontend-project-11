@@ -1,5 +1,5 @@
-const rssParser = (rss) => {
-  const { contents, status } = rss;
+const rssParser = (rss, link) => {
+  const { contents } = rss;
   const result = {
     feed: '',
     posts: [],
@@ -17,7 +17,7 @@ const rssParser = (rss) => {
   const channelTitle = xml.querySelector('channel > title') ? xml.querySelector('channel > title').textContent : '';
   const channelDescription = xml.querySelector('channel > description') ? xml.querySelector('channel > description').textContent : '';
 
-  result.feed = { title: channelTitle, description: channelDescription, link: status.url };
+  result.feed = { title: channelTitle, description: channelDescription, link: link };
 
   const items = xml.querySelectorAll('item');
 
