@@ -8,16 +8,6 @@ import onChange from 'on-change';
 import parser from './parser.js';
 import view from './view.js';
 
-yup.setLocale({
-  string: {
-    url: 'error.address',
-  },
-  mixed: {
-    required: 'error.empty',
-    notOneOf: 'error.oneOf',
-  },
-});
-
 const {
   renderFeeds,
   renderPosts,
@@ -55,7 +45,10 @@ const getSortedPosts = () => {
 
 const getLinks = () => state.displayField.feeds.map((node) => node.link);
 
-const proxying = (link) => axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${link}`);
+const proxying = (link) => {
+  const url = new URL(link)
+  return axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`);
+};
 
 const downloadRss = (link) => proxying(link)
   .then((response) => response.data)
@@ -120,6 +113,16 @@ const updatePosts = () => {
 };
 
 const makeControl = (value) => {
+  yup.setLocale({
+    string: {
+      url: 'error.address',
+    },
+    mixed: {
+      required: 'error.empty',
+      notOneOf: 'error.oneOf',
+    },
+  });
+
   const validate = (string) => {
     const schema = yup.string()
       .url()
