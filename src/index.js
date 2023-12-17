@@ -8,15 +8,6 @@ import onChange from 'on-change';
 import parser from './parser.js';
 import view from './view.js';
 
-const {
-  renderFeeds,
-  renderPosts,
-  renderError,
-  renderSuccess,
-  disableButton,
-  formWatcher,
-} = view();
-
 const sortByDate = (data) => {
   const result = data.sort((a, b) => {
     const date1 = new Date(a.pubDate);
@@ -29,14 +20,25 @@ const sortByDate = (data) => {
 
 const state = {
   inputForm: {
-    status: 'default',
+    status: 'waiting',
     error: '',
   },
   displayField: {
     feeds: [],
     posts: [],
+    viewedPosts: [],
   },
 };
+
+const {
+  renderFeeds,
+  renderPosts,
+  renderError,
+  renderSuccess,
+  disableButton,
+  resetButton,
+  formWatcher,
+} = view(state.displayField);
 
 const getSortedPosts = () => {
   const uniqPosts = _.uniqBy(state.displayField.posts.flat(), 'title');
@@ -45,9 +47,9 @@ const getSortedPosts = () => {
 
 const getLinks = () => state.displayField.feeds.map((node) => node.link);
 
-const proxying = (link) => axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`);
+const getProxyLink = (link) => axios(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(link)}`);
 
-const downloadRss = (link) => proxying(link)
+const downloadRss = (link) => getProxyLink(link)
   .then((response) => response.data)
   .then((data) => parser(data, link))
   .then((data) => {
@@ -67,6 +69,9 @@ const downloadRss = (link) => proxying(link)
 const watchedState = onChange(state, (path, value) => {
   if (path === 'inputForm.status') {
     switch (value) {
+      case 'waiting':
+        resetButton();
+        break;
       case 'processing':
         disableButton();
         break;
@@ -81,25 +86,23 @@ const watchedState = onChange(state, (path, value) => {
           renderPosts(state.displayField.posts);
         }
         break;
-      case 'refresh':
-        renderPosts(state.displayField.posts);
-        break;
       default:
         throw new Error('status fail');
     }
+  }
+  if (path === 'displayField.posts') {
+    renderPosts(state.displayField.posts);
   }
 });
 
 const updatePosts = () => {
   const updateDelay = 5000;
+
   const promises = getLinks().map((link) => downloadRss(link));
   Promise.all(promises)
     .then(() => {
       const sortedPosts = getSortedPosts();
-      state.displayField.posts = sortedPosts;
-
-      state.inputForm.status = 'default';
-      watchedState.inputForm.status = 'refresh';
+      watchedState.displayField.posts = sortedPosts;
     })
     .catch((error) => {
       throw error;
@@ -130,29 +133,27 @@ const makeControl = (value) => {
   };
 
   validate(value)
-    .then(() => {
+    .then((data) => {
       watchedState.inputForm.status = 'processing';
+      return downloadRss(data);
     })
-    .then(() => downloadRss(value))
     .then(() => {
       const sortedPosts = getSortedPosts();
       state.displayField.posts = sortedPosts;
 
       watchedState.inputForm.status = 'processed';
-    })
-    .then(() => {
-      if (getLinks().length === 1) {
-        updatePosts();
-      }
+      watchedState.inputForm.status = 'waiting';
     })
     .catch((error) => {
+      watchedState.inputForm.status = 'processing';
+
       let errorMessage;
 
-      switch (error.message) {
-        case 'Network Error':
+      switch (error.code) {
+        case 'ERR_NETWORK':
           errorMessage = 'error.net';
           break;
-        case 'Link has no channel':
+        case 'ERR_PARSER':
           errorMessage = 'error.notRss';
           break;
         default:
@@ -161,9 +162,11 @@ const makeControl = (value) => {
       }
       state.inputForm.error = errorMessage;
 
-      state.inputForm.status = 'default';
       watchedState.inputForm.status = 'failed';
+      watchedState.inputForm.status = 'waiting';
     });
 };
+
+updatePosts();
 
 formWatcher(makeControl);

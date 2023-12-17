@@ -7,9 +7,8 @@ i18next.init({
   resources,
 });
 
-const view = () => {
-  const allPosts = [];
-  const viewedPosts = [];
+const view = (state) => {
+  const { posts, viewedPosts } = state;
 
   const clearMessage = () => {
     const message = document.getElementById('message');
@@ -22,7 +21,9 @@ const view = () => {
   };
 
   const renderModal = (node) => {
-    const { title, description, id } = node;
+    const {
+      title, description, id, link,
+    } = node;
     const modal = document.getElementById('modal');
 
     const modalTitle = modal.querySelector('.modal-title');
@@ -44,14 +45,29 @@ const view = () => {
     const postButton = post.querySelector('button');
     postButton.classList = 'btn btn-outline-secondary';
 
-    modal.addEventListener('click', () => {
-      modal.classList.remove('show');
-      modal.style = 'display: none;';
+    const readButton = modal.querySelector('.read');
+    readButton.href = link;
 
-      modalTitle.textContent = '';
+    modal.addEventListener('click', (e) => {
+      if (e.target.classList.contains('close')) {
+        modal.classList.remove('show');
+        modal.style = 'display: none;';
 
-      modalBody.innerHTML = '';
+        modalTitle.textContent = '';
+
+        modalBody.innerHTML = '';
+      }
     });
+  };
+
+  const renderHeaders = () => {
+    const postHeader = document.querySelector('p');
+    postHeader.textContent = i18next.t('ul.posts');
+
+    const feedsDiv = document.getElementById('feeds');
+    const feedHeader = document.createElement('p');
+    feedHeader.textContent = i18next.t('ul.feeds');
+    feedsDiv.appendChild(feedHeader);
   };
 
   const renderFeeds = (feeds) => {
@@ -60,9 +76,6 @@ const view = () => {
 
     const ul = document.createElement('ul');
     ul.classList = 'list-group';
-
-    const feedHeader = document.createElement('p');
-    feedHeader.textContent = i18next.t('ul.feeds');
 
     feeds.forEach((feed) => {
       const { title, description } = feed;
@@ -81,25 +94,21 @@ const view = () => {
       ul.appendChild(li);
     });
 
-    feedsDiv.appendChild(feedHeader);
+    renderHeaders();
     feedsDiv.appendChild(ul);
   };
 
-  const renderPosts = (posts) => {
+  const renderPosts = (newPosts) => {
     const postsDiv = document.getElementById('posts');
 
     const ul = postsDiv.querySelector('ul');
     ul.innerHTML = '';
 
-    const postHeader = postsDiv.querySelector('p');
-    postHeader.textContent = i18next.t('ul.posts');
-
-    posts.forEach((post) => {
+    newPosts.forEach((post) => {
+      posts.push(post);
       const {
         title, link, id,
       } = post;
-
-      allPosts.push(post);
 
       const a = document.createElement('a');
       a.id = 'postTitle';
@@ -130,6 +139,25 @@ const view = () => {
     });
   };
 
+  const postsList = document.querySelector('#posts > ul');
+
+  postsList.addEventListener('click', (e) => {
+    let value;
+
+    switch (e.target.tagName) {
+      case 'BUTTON':
+        value = e.target.parentNode;
+        break;
+      default:
+        value = e.target;
+    }
+    const postId = value.id;
+
+    const currentPost = posts.flat().find((el) => el.id === postId);
+
+    renderModal(currentPost);
+  });
+
   const form = document.getElementById('form');
 
   const resetButton = () => {
@@ -150,10 +178,7 @@ const view = () => {
     div.textContent = i18next.t(error);
 
     divInput.appendChild(div);
-    resetButton();
   };
-
-  const getPostById = (id) => allPosts.find((el) => el.id === id);
 
   const renderSuccess = () => {
     clearMessage();
@@ -167,26 +192,7 @@ const view = () => {
     div.textContent = i18next.t('valid');
     divInput.appendChild(div);
     form.reset();
-    resetButton();
   };
-
-  const postsList = document.querySelector('#posts > ul');
-
-  postsList.addEventListener('click', (e) => {
-    let value;
-
-    switch (e.target.tagName) {
-      case 'BUTTON':
-        value = e.target.parentNode;
-        break;
-      default:
-        value = e.target;
-    }
-    const postId = value.id;
-    const currentPost = getPostById(postId);
-
-    renderModal(currentPost);
-  });
 
   const formWatcher = (controller) => {
     form.addEventListener('submit', (e) => {
