@@ -1,13 +1,4 @@
-import i18next from 'i18next';
-import resources from './locales/index.js';
-
-i18next.init({
-  lng: 'ru',
-  debug: false,
-  resources,
-});
-
-const view = (state) => {
+const view = (state, i18next) => {
   const { posts, viewedPosts } = state;
 
   const clearMessage = () => {
@@ -142,20 +133,13 @@ const view = (state) => {
   const postsList = document.querySelector('#posts > ul');
 
   postsList.addEventListener('click', (e) => {
-    let value;
+    if (e.target.tagName === 'BUTTON') {
+      const postId = e.target.parentNode.id;
 
-    switch (e.target.tagName) {
-      case 'BUTTON':
-        value = e.target.parentNode;
-        break;
-      default:
-        value = e.target;
+      const currentPost = posts.flat().find((el) => el.id === postId);
+
+      renderModal(currentPost);
     }
-    const postId = value.id;
-
-    const currentPost = posts.flat().find((el) => el.id === postId);
-
-    renderModal(currentPost);
   });
 
   const form = document.getElementById('form');
@@ -182,15 +166,19 @@ const view = (state) => {
 
   const renderSuccess = () => {
     clearMessage();
+
     const input = document.querySelector('input');
     input.classList.add('is-valid');
 
     const divInput = document.getElementById('div-input');
+
     const div = document.createElement('div');
     div.id = 'message';
     div.classList = 'valid-feedback';
     div.textContent = i18next.t('valid');
+
     divInput.appendChild(div);
+
     form.reset();
   };
 
@@ -200,6 +188,7 @@ const view = (state) => {
 
       const input = document.getElementById('url-input');
       const { value } = input;
+
       controller(value);
     });
   };
