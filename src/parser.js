@@ -1,21 +1,19 @@
 const rssParser = (rss, url) => {
   const { contents } = rss;
-  const result = {
-    feed: '',
-    posts: [],
-  };
+  const result = { posts: [] };
 
   const parser = new DOMParser();
 
   const xml = parser.parseFromString(contents, 'text/xml');
 
-  const channel = xml.querySelector('channel');
+  const errorNode = xml.querySelector('parsererror');
 
-  if (!channel) {
-    const error = new Error('Link has no channel');
+  if (errorNode) {
+    const error = new Error(errorNode);
     error.code = 'ERR_PARSER';
     throw error;
   }
+
   const channelTitle = xml.querySelector('channel > title') ? xml.querySelector('channel > title').textContent : '';
   const channelDescription = xml.querySelector('channel > description') ? xml.querySelector('channel > description').textContent : '';
 
